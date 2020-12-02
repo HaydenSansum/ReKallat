@@ -10,6 +10,13 @@ class ofApp : public ofBaseApp{
 		void update();
 		void draw();
     
+        ofVec2f hilbert_step(ofVec2f start_pos, int size, int direction);
+  
+        ofVec2f build_hilbert_left(ofVec2f start_pos, int size);
+        ofVec2f build_hilbert_right(ofVec2f start_pos, int size);
+        ofVec2f build_hilbert_up(ofVec2f start_pos, int size);
+        ofVec2f build_hilbert_down(ofVec2f start_pos, int size);
+    
         void move_left();
         void move_right();
         void move_up();
