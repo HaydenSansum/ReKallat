@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
+#include "sand.hpp"
 
 class ofApp : public ofBaseApp{
 
@@ -8,6 +9,11 @@ class ofApp : public ofBaseApp{
 		void setup();
 		void update();
 		void draw();
+    
+        void move_left();
+        void move_right();
+        void move_up();
+        void move_down();
 
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -20,5 +26,24 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
+    
+    // Particles
+    vector<sand> sand_particles;
+    int sand_particle_n;
+    int max_force;
+    int max_velocity;
+    float distance_limit;
+    
+    // Explorer
+    ofVec2f explorer;
+    ofColor explorer_color;
+    int explorer_size;
+    
+    // Constants
+    int ww;
+    int hh;
+    
+    // Imgs
+    ofImage save_img;
 		
 };
