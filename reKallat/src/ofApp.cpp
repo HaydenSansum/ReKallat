@@ -61,7 +61,7 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     
-    ofSetColor(30,5,1,180);
+    ofSetColor(20,15,9,120);
     
     // Draw the sand
     for (int i = 0; i < sand_particle_n; i++) {
