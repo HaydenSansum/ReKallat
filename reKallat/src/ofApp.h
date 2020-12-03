@@ -12,10 +12,8 @@ class ofApp : public ofBaseApp{
     
         ofVec2f hilbert_step(ofVec2f start_pos, int size, int direction);
   
-        ofVec2f build_hilbert_left(ofVec2f start_pos, int size);
-        ofVec2f build_hilbert_right(ofVec2f start_pos, int size);
-        ofVec2f build_hilbert_up(ofVec2f start_pos, int size);
-        ofVec2f build_hilbert_down(ofVec2f start_pos, int size);
+        void build_hilbert(ofVec2f start_pos, int width, int order);
+        ofVec2f calc_hilbert_pos(int i, int order);
     
         void move_left();
         void move_right();
@@ -49,6 +47,11 @@ class ofApp : public ofBaseApp{
     // Constants
     int ww;
     int hh;
+    
+    // Hilbert
+    int n_grid;
+    int n_points;
+    ofPath h_path;
     
     // Imgs
     ofImage save_img;

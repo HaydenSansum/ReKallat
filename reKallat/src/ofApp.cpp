@@ -4,8 +4,8 @@
 void ofApp::setup(){
 
     // Constants
-    ww = 800;
-    hh = 800;
+    ww = 1200;
+    hh = 600;
     
     // Parameters - Sand
     sand_particle_n = 25000;
@@ -33,7 +33,8 @@ void ofApp::setup(){
         sand_particles.push_back(fresh_sand);
     }
     
-    
+    build_hilbert(ofVec2f(ww/2 - 100, hh/2 - 100), 200, 3);
+
 }
 
 //--------------------------------------------------------------
@@ -64,9 +65,9 @@ void ofApp::draw(){
     ofSetColor(20,15,9,120);
     
     // Draw the sand
-    for (int i = 0; i < sand_particle_n; i++) {
-        sand_particles[i].draw();
-    }
+//    for (int i = 0; i < sand_particle_n; i++) {
+//        sand_particles[i].draw();
+//    }
     
     // Draw the explorer
     ofSetColor(explorer_color);
@@ -74,76 +75,118 @@ void ofApp::draw(){
     
     
     // Build a hilbert pattern
-    ofSetColor(166,143,119);
-    ofSetLineWidth(4);
-    build_hilbert_left(ofVec2f(ww/2 - 5, 100), 70);
+    h_path.setStrokeColor(ofColor(166,143,119));
+    h_path.setFilled(false);
+    h_path.setStrokeWidth(4);
+    h_path.draw();
     
 }
 
+
 //--------------------------------------------------------------
-ofVec2f ofApp::hilbert_step(ofVec2f start_pos, int size, int direction){
+void ofApp::build_hilbert(ofVec2f start_pos, int width, int order){
     
-    // 0 = left, 1 = right, 2 = up, 3 = down
-    ofVec2f movement;
-    
-    if (direction == 0) {
-        movement = ofVec2f(-size, 0);
-    } else if (direction == 1) {
-        movement = ofVec2f(size, 0);
-    } else if (direction == 2) {
-        movement = ofVec2f(0, -size);
-    } else if (direction == 3) {
-        movement = ofVec2f(0, size);
-    } else {
-        movement = ofVec2f(0, 0);
+    n_grid = (int) pow(2, order);
+    n_points = n_grid * n_grid;
+   
+    float length = width / n_grid;
+       
+    for (int i = 0; i < n_points; i++) {
+        
+        ofVec2f new_point = calc_hilbert_pos(i, order);
+        cout << new_point << endl;
+        
+        // Stretch to the right size and offset
+        new_point.x = new_point.x * length + length/2;
+        new_point.y = new_point.y * length + length/2;
+        
+        if (i == 0) {
+            h_path.moveTo(start_pos + new_point);
+        } else {
+            h_path.lineTo(start_pos + new_point);
+        }
+        
     }
     
-    ofVec2f new_position = start_pos + movement;
-    
-    return new_position;
-    
 }
 
 
 //--------------------------------------------------------------
-ofVec2f ofApp::build_hilbert_left(ofVec2f start_pos, int size){
+ofVec2f ofApp::calc_hilbert_pos(int i, int order){
     
-    // Take all the required steps
-    ofVec2f position1 = hilbert_step(start_pos, size, 3); // down
-    ofVec2f position2 = hilbert_step(position1, size, 0); // left
-    ofVec2f position3 = hilbert_step(position2, size, 2); // up
-    ofVec2f position4 = hilbert_step(position3, size, 0); // left
-    ofVec2f position5 = hilbert_step(position4, size, 0); // left
-    ofVec2f position6 = hilbert_step(position5, size, 3); // down
-    ofVec2f position7 = hilbert_step(position6, size, 1); // right
-    ofVec2f position8 = hilbert_step(position7, size, 3); // down
-    ofVec2f position9 = hilbert_step(position8, size, 0); // left
-    ofVec2f position10 = hilbert_step(position9, size, 3); // down
-    ofVec2f position11 = hilbert_step(position10, size, 1); // right
-    ofVec2f position12 = hilbert_step(position11, size, 1); // right
-    ofVec2f position13 = hilbert_step(position12, size, 2); // up
-    ofVec2f position14 = hilbert_step(position13, size, 1); // right
-    ofVec2f position15 = hilbert_step(position14, size, 3); // down
-
-    // Draw all the lines
-    ofDrawLine(start_pos, position1);
-    ofDrawLine(position1, position2);
-    ofDrawLine(position2, position3);
-    ofDrawLine(position3, position4);
-    ofDrawLine(position4, position5);
-    ofDrawLine(position5, position6);
-    ofDrawLine(position6, position7);
-    ofDrawLine(position7, position8);
-    ofDrawLine(position8, position9);
-    ofDrawLine(position9, position10);
-    ofDrawLine(position10, position11);
-    ofDrawLine(position11, position12);
-    ofDrawLine(position12, position13);
-    ofDrawLine(position13, position14);
-    ofDrawLine(position14, position15);
+    // Create a vector of cells
+    vector<ofVec2f> cells;
+    cells.push_back(ofVec2f(0,0));
+    cells.push_back(ofVec2f(0,1));
+    cells.push_back(ofVec2f(1,1));
+    cells.push_back(ofVec2f(1,0));
     
-    return position15;
+    int cell_index = i & 3;
+    ofVec2f point = cells[cell_index];
+    
+    for (int j = 1; j < order; j++) {
+        
+        // Shift i over two and recalculatge sub index
+        i = (i >> 2);
+        int cell_sub_index = i & 3;
+        
+        // Calculate length based on order
+        float length = pow(2, j);
+        
+        // If top right subcell rotate and mirror (flip x and y)
+        if (cell_sub_index == 0) {
+            float temp_x = point.x;
+            point.x = point.y;
+            point.y = temp_x;
+        } else if (cell_sub_index == 1) {
+            point.y = point.y + length;
+        } else if (cell_sub_index == 2) {
+            point.x = point.x + length;
+            point.y = point.y + length;
+        } else {
+            float temp_x = length - 1 - point.x;
+            point.x = length - 1 - point.y;
+            point.y = temp_x;
+            point.x = point.x + length;
+        }
+    }
+    
+    return point;
+    
 }
+        
+//
+//        if (pos == 0) {
+//            if (begin == 1) {
+//                h_path.moveTo(center + ofVec2f(-size/2, -size/2));
+//                begin = 0;
+//            } else {
+//                if (pos2 == 3) {
+//                    h_path.lineTo(center + ofVec2f(+size/2, +size/2));
+//                } else {
+//                    h_path.lineTo(center + ofVec2f(-size/2, -size/2));
+//                }
+//            }
+//        } else if (pos == 1) {
+//            if (pos2 == 0) {
+//                h_path.lineTo(center + ofVec2f(+size/2, -size/2));
+//            } else {
+//                h_path.lineTo(center + ofVec2f(-size/2, +size/2));
+//            }
+//        } else if (pos == 2) {
+//            if (pos2 == 3) {
+//                h_path.lineTo(center + ofVec2f(-size/2, -size/2));
+//            } else {
+//                h_path.lineTo(center + ofVec2f(+size/2, +size/2));
+//            }
+//        } else {
+//            if (pos2 == 0) {
+//                h_path.lineTo(center + ofVec2f(-size/2, +size/2));
+//            } else {
+//                h_path.lineTo(center + ofVec2f(+size/2, -size/2));
+//            }
+//        }
+        
 
 
 //--------------------------------------------------------------
