@@ -10,20 +10,28 @@ void ofApp::setup(){
     ofSetFrameRate(framerate);
     counter = 0;
     
+    draw_structure = false;
+    draw_explorer = false;
+    
     // Parameters - Wind
-    wind_speed = 7;
+    wind_speed_large = 14;
+    wind_speed_medium = 20;
+    wind_speed_small = 30;
     wind_active = false;
     
     // Parameters - Sand
-    sand_particle_n = 160000; // 300000 for performance limit
+    sand_particle_n = 150000; // 300000 for performance limit
     max_force = 1.0;
-    max_velocity = 3.0;
+    max_velocity = 2.0;
     distance_limit = 30;
+    num_s_colors = 8;
+    s_alpha = 180;
+    generate_sand_colors();
     
     // Parameters - Agent
-//    explorer_color = ofColor(255,0,0);
-//    explorer_size = 5;
-//    explorer = ofVec2f(5, hh/2);
+    explorer_color = ofColor(255,0,0);
+    explorer_size = 5;
+    explorer = ofVec2f(5, hh/2);
        
     // Canvas
     ofBackground(230);
@@ -40,9 +48,9 @@ void ofApp::setup(){
     }
     
     // Specify Hilbert Fractals
-    h_paths.push_back(build_hilbert(ofVec2f(85, 100), 400, 3));
-    h_paths.push_back(build_hilbert(ofVec2f(520, 115), 380, 4));
-    h_paths.push_back(build_hilbert(ofVec2f(935, 125), 360, 5));
+    h_paths.push_back(build_hilbert(ofVec2f(75, 100), 400, 3));
+    h_paths.push_back(build_hilbert(ofVec2f(500, 100), 400, 4));
+    h_paths.push_back(build_hilbert(ofVec2f(933, 108), 415, 5));
 
     // Get Mazes as points
     vector<ofPolyline> large_maze_path = h_paths[0].getOutline();
@@ -75,16 +83,22 @@ void ofApp::update(){
                 node_steps = (int) ofRandom(2, 8);
                 wind_start = large_maze[current_node];
                 wind_stop = large_maze[current_node + 1];
+                wind_speed = wind_speed_large;
+                distance_limit = 50;
             } else if (maze_type == 1) {
                 current_node = (int) ofRandom(0, (medium_maze.size()-12));
                 node_steps = (int) ofRandom(2, 12);
                 wind_start = medium_maze[current_node];
                 wind_stop = medium_maze[current_node + 1];
+                wind_speed = wind_speed_medium;
+                distance_limit = 28;
             } else {
                 current_node = (int) ofRandom(0, (small_maze.size()-16));
                 node_steps = (int) ofRandom(2, 16);
                 wind_start = small_maze[current_node];
                 wind_stop = small_maze[current_node + 1];
+                wind_speed = wind_speed_small;
+                distance_limit = 15;
             }
             node_counter = 0;
             
@@ -144,31 +158,42 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     
-    ofSetColor(20,15,9,120);
+    
     
     // Draw the sand
+    ofSeedRandom(13);
     for (int i = 0; i < sand_particle_n; i++) {
+        
+        int rand_color = (int) ofRandom(num_s_colors);
+        
+        ofSetColor(sand_colors[rand_color]);
         sand_particles[i].draw();
     }
+    ofSeedRandom();
     
-    // Draw the explorer
-    ofSetColor(explorer_color);
-    ofDrawCircle(explorer.x, explorer.y, explorer_size);
-    
-    
-    // Build a hilbert pattern
-    for (int i = 0; i < h_paths.size(); i++) {
+    if (draw_explorer) {
+        // Draw the explorer
+        ofSetColor(explorer_color);
+        ofDrawCircle(explorer.x, explorer.y, explorer_size);
         
-        // Specific rules for rotation
-        h_paths[i].setStrokeColor(ofColor(166,143,119));
-        h_paths[i].setFilled(false);
-        h_paths[i].setStrokeWidth(4);
-        h_paths[i].draw();
+    }
+    if (draw_structure) {
+        
+        // Build a hilbert pattern
+        for (int i = 0; i < h_paths.size(); i++) {
+            
+            // Specific rules for rotation
+            h_paths[i].setStrokeColor(ofColor(166,143,119));
+            h_paths[i].setFilled(false);
+            h_paths[i].setStrokeWidth(4);
+            h_paths[i].draw();
+        }
+        
+        // Draw the wind
+        ofSetColor(0,255,255);
+        ofDrawCircle(wind, 5);
     }
     
-    // Draw the wind
-    ofSetColor(0,255,255);
-    ofDrawCircle(wind, 5);
     
     
 }
@@ -247,6 +272,19 @@ ofVec2f ofApp::calc_hilbert_pos(int i, int order){
     
 }
         
+//--------------------------------------------------------------
+void ofApp::generate_sand_colors(){
+    
+    int reds [8] = {161,93,35,47,36,48,141,105};
+    int greens [8] = {118,53,19,43,12,37,129,91};
+    int blues [8] = {88,24,8,35,4,28,107,73};
+    
+    for (int i = 0; i < num_s_colors; i ++) {
+        sand_colors.push_back(ofColor(reds[i], greens[i], blues[i], s_alpha));
+    }
+    
+}
+
 
 //--------------------------------------------------------------
 void ofApp::move_left(){
