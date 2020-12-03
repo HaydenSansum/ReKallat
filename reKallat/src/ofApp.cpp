@@ -4,11 +4,11 @@
 void ofApp::setup(){
 
     // Constants
-    ww = 1200;
+    ww = 1400;
     hh = 600;
     
     // Parameters - Sand
-    sand_particle_n = 25000;
+    sand_particle_n = 100000;
     max_force = 1.0;
     max_velocity = 3.0;
     distance_limit = 30;
@@ -24,7 +24,7 @@ void ofApp::setup(){
     
     for (int i = 0; i < sand_particle_n; i++) {
     
-        ofVec2f initial_pos = ofVec2f((int) ofRandom(ww/2 - 100, ww/2 + 100), (int) ofRandom(hh/2 - 100, hh/2 + 100));
+        ofVec2f initial_pos = ofVec2f((int) ofRandom(75, ww-75), (int) ofRandom(100, hh-100));
         float random_mass = ofRandom(1,3);
         
         sand fresh_sand;
@@ -33,7 +33,11 @@ void ofApp::setup(){
         sand_particles.push_back(fresh_sand);
     }
     
-    build_hilbert(ofVec2f(ww/2 - 100, hh/2 - 100), 200, 3);
+    // Specify Hilbert Fractals
+    h_paths.push_back(build_hilbert(ofVec2f(85, 100), 400, 3));
+    h_paths.push_back(build_hilbert(ofVec2f(520, 115), 380, 4));
+    h_paths.push_back(build_hilbert(ofVec2f(935, 125), 360, 5));
+
 
 }
 
@@ -65,9 +69,9 @@ void ofApp::draw(){
     ofSetColor(20,15,9,120);
     
     // Draw the sand
-//    for (int i = 0; i < sand_particle_n; i++) {
-//        sand_particles[i].draw();
-//    }
+    for (int i = 0; i < sand_particle_n; i++) {
+        sand_particles[i].draw();
+    }
     
     // Draw the explorer
     ofSetColor(explorer_color);
@@ -75,26 +79,42 @@ void ofApp::draw(){
     
     
     // Build a hilbert pattern
-    h_path.setStrokeColor(ofColor(166,143,119));
-    h_path.setFilled(false);
-    h_path.setStrokeWidth(4);
-    h_path.draw();
+    for (int i = 0; i < h_paths.size(); i++) {
+        
+        // Specific rules for rotation
+        ofPushMatrix();
+//        if (i == 0) {
+//            ofTranslate(300, 320);
+//            ofRotateDeg(180);
+//        } if (i == 1) {
+//            ofTranslate(500, 320);
+//            ofRotateDeg(180);
+//        }
+        
+        
+        h_paths[i].setStrokeColor(ofColor(166,143,119));
+        h_paths[i].setFilled(false);
+        h_paths[i].setStrokeWidth(4);
+        h_paths[i].draw();
+        ofPopMatrix();
+    }
+    
     
 }
 
 
 //--------------------------------------------------------------
-void ofApp::build_hilbert(ofVec2f start_pos, int width, int order){
+ofPath ofApp::build_hilbert(ofVec2f start_pos, int width, int order){
     
     n_grid = (int) pow(2, order);
     n_points = n_grid * n_grid;
-   
+    ofPath h_path;
+    
     float length = width / n_grid;
        
     for (int i = 0; i < n_points; i++) {
         
         ofVec2f new_point = calc_hilbert_pos(i, order);
-        cout << new_point << endl;
         
         // Stretch to the right size and offset
         new_point.x = new_point.x * length + length/2;
@@ -108,6 +128,7 @@ void ofApp::build_hilbert(ofVec2f start_pos, int width, int order){
         
     }
     
+    return h_path;
 }
 
 
@@ -155,39 +176,6 @@ ofVec2f ofApp::calc_hilbert_pos(int i, int order){
     
 }
         
-//
-//        if (pos == 0) {
-//            if (begin == 1) {
-//                h_path.moveTo(center + ofVec2f(-size/2, -size/2));
-//                begin = 0;
-//            } else {
-//                if (pos2 == 3) {
-//                    h_path.lineTo(center + ofVec2f(+size/2, +size/2));
-//                } else {
-//                    h_path.lineTo(center + ofVec2f(-size/2, -size/2));
-//                }
-//            }
-//        } else if (pos == 1) {
-//            if (pos2 == 0) {
-//                h_path.lineTo(center + ofVec2f(+size/2, -size/2));
-//            } else {
-//                h_path.lineTo(center + ofVec2f(-size/2, +size/2));
-//            }
-//        } else if (pos == 2) {
-//            if (pos2 == 3) {
-//                h_path.lineTo(center + ofVec2f(-size/2, -size/2));
-//            } else {
-//                h_path.lineTo(center + ofVec2f(+size/2, +size/2));
-//            }
-//        } else {
-//            if (pos2 == 0) {
-//                h_path.lineTo(center + ofVec2f(-size/2, +size/2));
-//            } else {
-//                h_path.lineTo(center + ofVec2f(+size/2, -size/2));
-//            }
-//        }
-        
-
 
 //--------------------------------------------------------------
 void ofApp::move_left(){
@@ -201,7 +189,7 @@ void ofApp::move_left(){
 void ofApp::move_right(){
     explorer.x = explorer.x + 5;
     if (explorer.x > ww - 5) {
-        explorer.x = ww = 5;
+        explorer.x = ww - 5;
     }
 }
 
