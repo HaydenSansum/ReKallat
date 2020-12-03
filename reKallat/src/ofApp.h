@@ -57,15 +57,18 @@ class ofApp : public ofBaseApp{
     vector<glm::vec3> large_maze;
     vector<glm::vec3> medium_maze;
     vector<glm::vec3> small_maze;
+    int maze_type;
     
     // Wind
     glm::vec3 wind;
     glm::vec3 wind_stop;
     glm::vec3 wind_start;
     float wind_speed;
+    bool wind_active;
     
     int current_node;
     int node_steps;
+    int node_counter;
     
     // Imgs
     ofImage save_img;

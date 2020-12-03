@@ -11,10 +11,11 @@ void ofApp::setup(){
     counter = 0;
     
     // Parameters - Wind
-    wind_speed = 5; // Wind speed is many times per second the wind moves
+    wind_speed = 7;
+    wind_active = false;
     
     // Parameters - Sand
-    sand_particle_n = 100000; // 300000 for performance limit
+    sand_particle_n = 160000; // 300000 for performance limit
     max_force = 1.0;
     max_velocity = 3.0;
     distance_limit = 30;
@@ -26,7 +27,6 @@ void ofApp::setup(){
        
     // Canvas
     ofBackground(230);
-    
     
     for (int i = 0; i < sand_particle_n; i++) {
     
@@ -46,13 +46,11 @@ void ofApp::setup(){
 
     // Get Mazes as points
     vector<ofPolyline> large_maze_path = h_paths[0].getOutline();
+    vector<ofPolyline> medium_maze_path = h_paths[1].getOutline();
+    vector<ofPolyline> small_maze_path = h_paths[2].getOutline();
     large_maze = large_maze_path[0].getVertices();
-
-    current_node = (int) ofRandom(0, (large_maze.size()-8));
-    node_steps = (int) ofRandom(2, 8);
-    
-    wind_start = large_maze[current_node];
-    wind_stop = large_maze[current_node + 1];
+    medium_maze = medium_maze_path[0].getVertices();
+    small_maze = small_maze_path[0].getVertices();
     
     ofSleepMillis(1500);
 }
@@ -62,6 +60,36 @@ void ofApp::update(){
 
     // Update counter
     counter++;
+    
+    
+    // If Wind isn't active - small small chance for it to spawn
+    if (wind_active == false) {
+        float trigger = ofRandom(1);
+        if (trigger < 0.08) {
+            wind_active = true;
+            
+            maze_type = (int) ofRandom(3);
+            
+            if(maze_type == 0) {
+                current_node = (int) ofRandom(0, (large_maze.size()-8));
+                node_steps = (int) ofRandom(2, 8);
+                wind_start = large_maze[current_node];
+                wind_stop = large_maze[current_node + 1];
+            } else if (maze_type == 1) {
+                current_node = (int) ofRandom(0, (medium_maze.size()-12));
+                node_steps = (int) ofRandom(2, 12);
+                wind_start = medium_maze[current_node];
+                wind_stop = medium_maze[current_node + 1];
+            } else {
+                current_node = (int) ofRandom(0, (small_maze.size()-16));
+                node_steps = (int) ofRandom(2, 16);
+                wind_start = small_maze[current_node];
+                wind_stop = small_maze[current_node + 1];
+            }
+            node_counter = 0;
+            
+        }
+    }
     
     
     for (int i = 0; i < sand_particle_n; i++) {
@@ -90,8 +118,25 @@ void ofApp::update(){
         
         // Update to next node
         current_node++;
-        wind_start = large_maze[current_node];
-        wind_stop = large_maze[current_node + 1];
+        node_counter++;
+        
+        if (node_counter < node_steps) {
+            if (maze_type == 0) {
+                wind_start = large_maze[current_node];
+                wind_stop = large_maze[current_node + 1];
+            } else if (maze_type == 1) {
+                wind_start = medium_maze[current_node];
+                wind_stop = medium_maze[current_node + 1];
+            } else {
+                wind_start = small_maze[current_node];
+                wind_stop = small_maze[current_node + 1];
+            }
+        } else {
+            wind_active = false;
+            wind_start = glm::vec3(0.f, 0.f, 0.f);
+            wind_stop = glm::vec3(0.f, 0.f, 0.f);
+        }
+        
     }
     
 }
