@@ -6,17 +6,23 @@ void ofApp::setup(){
     // Constants
     ww = 1400;
     hh = 600;
+    framerate = 30;
+    ofSetFrameRate(framerate);
+    counter = 0;
+    
+    // Parameters - Wind
+    wind_speed = 5; // Wind speed is many times per second the wind moves
     
     // Parameters - Sand
-    sand_particle_n = 100000;
+    sand_particle_n = 100000; // 300000 for performance limit
     max_force = 1.0;
     max_velocity = 3.0;
     distance_limit = 30;
     
     // Parameters - Agent
-    explorer_color = ofColor(255,0,0);
-    explorer_size = 5;
-    explorer = ofVec2f(5, hh/2);
+//    explorer_color = ofColor(255,0,0);
+//    explorer_size = 5;
+//    explorer = ofVec2f(5, hh/2);
        
     // Canvas
     ofBackground(230);
@@ -38,16 +44,30 @@ void ofApp::setup(){
     h_paths.push_back(build_hilbert(ofVec2f(520, 115), 380, 4));
     h_paths.push_back(build_hilbert(ofVec2f(935, 125), 360, 5));
 
+    // Get Mazes as points
+    vector<ofPolyline> large_maze_path = h_paths[0].getOutline();
+    large_maze = large_maze_path[0].getVertices();
 
+    current_node = (int) ofRandom(0, (large_maze.size()-8));
+    node_steps = (int) ofRandom(2, 8);
+    
+    wind_start = large_maze[current_node];
+    wind_stop = large_maze[current_node + 1];
+    
+    ofSleepMillis(1500);
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
 
+    // Update counter
+    counter++;
+    
+    
     for (int i = 0; i < sand_particle_n; i++) {
         
         // Get mouse position and distance to sand
-        ofVec2f cursor_pos = ofVec2f(explorer.x, explorer.y);
+        ofVec2f cursor_pos = ofVec2f(wind.x, wind.y);
         
         float dist_to_cursor = cursor_pos.distance(sand_particles[i].pos);
 
@@ -59,6 +79,19 @@ void ofApp::update(){
             sand_particles[i].move();
             
         }
+    }
+    
+    // Update the wind
+    float wind_step = ofMap(counter, 0, (90 / wind_speed), 0, 1, true);
+    wind = glm::mix(wind_start, wind_stop, wind_step);
+
+    if (counter % (int) ((90 / wind_speed) + 1) == 0) {
+        counter = 0; // Reset counter
+        
+        // Update to next node
+        current_node++;
+        wind_start = large_maze[current_node];
+        wind_stop = large_maze[current_node + 1];
     }
     
 }
@@ -82,22 +115,15 @@ void ofApp::draw(){
     for (int i = 0; i < h_paths.size(); i++) {
         
         // Specific rules for rotation
-        ofPushMatrix();
-//        if (i == 0) {
-//            ofTranslate(300, 320);
-//            ofRotateDeg(180);
-//        } if (i == 1) {
-//            ofTranslate(500, 320);
-//            ofRotateDeg(180);
-//        }
-        
-        
         h_paths[i].setStrokeColor(ofColor(166,143,119));
         h_paths[i].setFilled(false);
         h_paths[i].setStrokeWidth(4);
         h_paths[i].draw();
-        ofPopMatrix();
     }
+    
+    // Draw the wind
+    ofSetColor(0,255,255);
+    ofDrawCircle(wind, 5);
     
     
 }

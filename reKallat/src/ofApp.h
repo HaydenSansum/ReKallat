@@ -47,11 +47,25 @@ class ofApp : public ofBaseApp{
     // Constants
     int ww;
     int hh;
+    int framerate;
+    int counter;
     
     // Hilbert
     int n_grid;
     int n_points;
     vector<ofPath> h_paths;
+    vector<glm::vec3> large_maze;
+    vector<glm::vec3> medium_maze;
+    vector<glm::vec3> small_maze;
+    
+    // Wind
+    glm::vec3 wind;
+    glm::vec3 wind_stop;
+    glm::vec3 wind_start;
+    float wind_speed;
+    
+    int current_node;
+    int node_steps;
     
     // Imgs
     ofImage save_img;
