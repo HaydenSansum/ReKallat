@@ -14,8 +14,8 @@ void ofApp::setup(){
     draw_explorer = false;
     
     // Parameters - Wind
-    wind_speed_large = 14;
-    wind_speed_medium = 20;
+    wind_speed_large = 24;
+    wind_speed_medium = 28;
     wind_speed_small = 30;
     wind_active = false;
     
@@ -76,7 +76,7 @@ void ofApp::update(){
         if (trigger < 0.08) {
             wind_active = true;
             
-            maze_type = (int) ofRandom(3);
+            maze_type = (int) ofRandom(5);
             
             if(maze_type == 0) {
                 current_node = (int) ofRandom(0, (large_maze.size()-8));
@@ -84,8 +84,8 @@ void ofApp::update(){
                 wind_start = large_maze[current_node];
                 wind_stop = large_maze[current_node + 1];
                 wind_speed = wind_speed_large;
-                distance_limit = 50;
-            } else if (maze_type == 1) {
+                distance_limit = 58;
+            } else if (maze_type < 3) {
                 current_node = (int) ofRandom(0, (medium_maze.size()-12));
                 node_steps = (int) ofRandom(2, 12);
                 wind_start = medium_maze[current_node];
@@ -138,7 +138,7 @@ void ofApp::update(){
             if (maze_type == 0) {
                 wind_start = large_maze[current_node];
                 wind_stop = large_maze[current_node + 1];
-            } else if (maze_type == 1) {
+            } else if (maze_type < 3) {
                 wind_start = medium_maze[current_node];
                 wind_stop = medium_maze[current_node + 1];
             } else {
